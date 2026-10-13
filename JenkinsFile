@@ -1,0 +1,83 @@
+pipeline {
+    agent {
+        label 'xxx-agent'
+    }
+    parameters {
+        string(name: 'URL', defaultValue: 'https://xxx.example.com', description: 'STG 환경 URL')
+    }
+    stages {
+        stage('Run Newman API Tests') {
+            steps {
+                script {
+                    // Run Newman script with environment files
+                    runNewmanTests()
+                }
+            }
+        }
+    
+    
+        stage('run newman') {
+                steps {
+                    script {
+                        try {
+                            def URL = params.URL
+                            sh '''
+                            sed -i "s;URL;${URL};g" environment.json
+                            '''
+                            runNewmanTests()
+                        } catch (Exception e) {
+                            currentBuild.result = 'FAILURE'
+                            echo "Error during 'run newman' stage: ${e.message}"
+                        }
+                    }
+                }
+            }
+        }
+
+    post {
+        always {
+            publishAllureResults("allure-results")
+        }
+        success {
+            script {
+                echo "성공"
+            }
+        }
+        failure {
+            script {
+                echo "실패"
+            }
+        }
+    }
+}
+
+def runNewmanTests() {
+    def nodeInstalled = sh(script: 'node --version', returnStatus: true) == 0
+    if (!nodeInstalled) {
+        // If Node.js is not installed, install it
+        sh '''
+            curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+            sudo apt-get install -y nodejs
+        '''
+    }
+    sh '''
+        source ~/.nvm/nvm.sh
+        npm install 16
+        nvm use 16
+        npm install newman
+        newman --version
+        npm install -g newman-reporter-allure
+        rm -rf allure-results
+        newman run collection.json -e environment.json --insecure -r allure --reporter-allure-export allure-results
+    '''
+}
+
+def publishAllureResults(String filepath) {
+    allure([
+                    includeProperties: false,
+                    jdk: '',
+                    properties: [],
+                    reportBuildPolicy: 'ALWAYS',
+                    results: [[path: filepath]]
+                ])
+}
