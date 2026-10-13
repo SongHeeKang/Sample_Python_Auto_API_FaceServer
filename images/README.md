@@ -1,50 +1,13 @@
 # images
 
 개인정보 보호를 위해 테스트 이미지는 저장소에서 제외했습니다.
-테스트를 실행하려면 아래 파일명으로 이미지를 준비해 이 폴더에 넣으세요.
+테스트를 실행하려면 아래와 같은 파일명으로 이미지를 준비해 이 폴더에 넣으세요.
+(필요한 전체 파일명은 `collection.json`의 `"src": "{{IMAGE_PATH}}/..."` 항목에서 확인할 수 있습니다.)
 
-- 1080.jpg
-- 200x200_A.jpg
-- 200x200_A_FAIL.jpg
-- 200x200_B.jpg
-- 200x200_B_FAIL.jpg
-- 20170922511983.jpg
-- 20240105_175337.jpg
-- 3Face.jpg
-- Face_112.jpg
-- NoMiddle.jpg
-- Office.jpg
-- Office_112.jpg
-- bigface1.jpg
-- downface.jpg
-- fake.jpg
-- fake.png
-- fake_4.zip
-- me.jpg
-- mult_5.zip
-- multiAB.zip
-- multi_0.zip
-- multi_10.zip
-- multi_10_me_jpg.zip
-- multi_20.zip
-- multi_20_me_jpg.zip
-- multi_3.zip
-- multi_30.zip
-- multi_30_me_jpg.zip
-- multi_4.zip
-- multi_40.zip
-- multi_40_me_jpg.zip
-- multi_40_me_png.zip
-- multi_40_png.zip
-- multi_4_me_jpg.zip
-- multi_4_me_png.zip
-- multi_4_png.zip
-- multi_many.zip
-- multi_string.zip
-- office_4.zip
-- sideface.jpg
-- sideface1.jpg
-- sideface3.jpg
-- upface.jpg
-- wrong.jpg
-- wrong_4.zip
+```
+1080.jpg
+.
+.
+.
+wrong_4.zip
+```
