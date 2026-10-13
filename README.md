@@ -46,38 +46,71 @@
   - `SUCC-xxxx`: 정상 응답 검증 (쿼리 파라미터 조합, 이미지 크기/포맷별 케이스 등)
   - `FAIL-xxxx`: 얼굴 검출/베스트 샷 추출 실패 케이스
   - `ERR-xxxx`: 필수 필드 누락, 잘못된 파일 형식 등 요청 오류 케이스
-- 각 요청의 Test Script에서 다음 항목을 검증합니다.
-  - HTTP Status Code 및 응답 시간 (1000ms 이내)
-  - 응답 Body 구조, 필수 파라미터 존재 여부 및 타입
-  - `return_code` / `return_msg` 값
-  - API 간 결과 값 비교 (Environment 변수에 저장한 값을 다른 API 응답과 비교)
+- 각 요청의 `Tests` 탭에 JavaScript(Chai Assertion)로 검증 스크립트를 작성했습니다. 상세 내용은 아래 [Test Case Assertion](#test-case-assertion-javascript)을 참고하세요.
 
 ### Test Case Assertion (JavaScript)
 
 <img src="https://github.com/user-attachments/assets/9ca7c36b-f392-4370-b29f-e92d3e33d34e" alt="Postman Test Script 예시" width="600">
 
-각 요청의 `Tests` 탭에 JavaScript로 Assertion을 작성했습니다.
+요청마다 시나리오에 맞는 Assertion을 여러 개 조합해 작성했습니다. 사용한 검증 유형은 다음과 같습니다.
 
-1. **Status Code 검증**: `pm.response.to.have.status(200)`
-2. **응답 시간 검증**: `pm.response.responseTime`이 1000ms 미만인지 확인
-3. **응답 값 검증**: `null`/`undefined`가 아닌지, 타입(`number`, `string`)이 맞는지, 값이 기대 범위 안에 있는지 확인 (예: `confidence`가 0.8 ~ 0.999 사이)
+| # | 검증 유형 | 검증 내용 | 주요 Assertion |
+|---|---|---|---|
+| 1 | Status Code | 정상 케이스는 `200`, 오류 케이스는 `400`인지 확인 | `pm.response.to.have.status()` |
+| 2 | 응답 시간 | 일반 API는 1000ms, 처리량이 많은 다중 이미지 API는 10000ms 이내인지 확인 | `to.be.below()` |
+| 3 | 응답 형식 | 응답이 정상(`ok`)이고 Body가 있으며 JSON 형식인지 확인 | `to.be.ok` / `to.be.withBody` / `to.be.json` |
+| 4 | 응답 구조 | 필수 필드가 있고 `error` 필드는 없는지 확인 | `to.have.jsonBody()` / `to.not.have.jsonBody()` |
+| 5 | 결과 코드/메시지 | `return_code`, `return_msg`가 시나리오별 기대 값(`SUCC-0000`, `ERR-4003` 등)과 같은지 확인 | `to.be.eql()` / `to.have.property()` |
+| 6 | null / undefined | 응답 값이 비어 있지 않은지 확인 | `to.not.be.null` / `to.not.be.undefined` / `to.not.be.oneOf([null, undefined])` |
+| 7 | 데이터 타입 | 각 필드의 타입(`number`, `string`, `array`)이 맞는지 확인 | `to.be.a()` |
+| 8 | 값 범위 | 신뢰도, 얼굴 좌표, 포즈 값이 유효 범위 안에 있는지 확인 (예: `confidence` 0.8 ~ 0.999) | `to.be.above().lessThan()` |
+| 9 | 검출 결과 값 | 검출된 얼굴 수(`count`), 정렬 이미지 크기(112×112)와 채널 수(3) 등 기대 값 확인 | `to.be.eql()` |
+| 10 | 실패 시 결과 없음 | 얼굴 검출 실패 시 결과 필드가 `null`인지 확인 | `to.be.null` |
+| 11 | 오류 응답 | 오류 케이스에서 응답이 오류 상태인지 확인 | `to.not.be.ok` / `to.be.error` |
+| 12 | API 간 결과 비교 | 앞선 API의 결과(얼굴 위치, 포즈, 특징값, 신뢰도 등)를 Environment 변수에 저장하고, 같은 이미지로 호출한 다른 API의 결과와 같은지 비교 | `pm.environment.set()` / `pm.environment.get()` + `to.be.eql()` |
 
 ```javascript
-var resp = pm.response.json();
+var responseData = pm.response.json();
 
+// 1. Status Code
 pm.test("Test1: Status code is 200", function () {
     pm.response.to.have.status(200);
 });
 
+// 2. 응답 시간
 pm.test("Test2: Response time is less than 1000ms", function () {
     pm.expect(pm.response.responseTime).to.be.below(1000);
 });
 
-pm.test("Test3: To check Response Result value & Param Type", function () {
-    pm.expect(resp.confidence).to.not.be.null;
-    pm.expect(resp.confidence).to.not.be.undefined;
-    pm.expect(resp.confidence).to.be.a("number");
-    pm.expect(resp.confidence).to.be.above(0.8).lessThan(0.999);
+// 5~7. 결과 코드, null/undefined, 타입
+pm.test("Test3: To check Response Result return_code & Param Type", function () {
+    pm.expect(responseData.return_code).to.not.be.oneOf([null, undefined]);
+    pm.expect(responseData.return_code).to.be.a("string");
+    pm.expect(responseData.return_code).to.be.eql("SUCC-0000");
+});
+
+// 3~4. 응답 형식과 구조
+pm.test("Test4: response must be valid and have a body", function () {
+    pm.response.to.be.ok;
+    pm.response.to.be.withBody;
+    pm.response.to.be.json;
+    pm.response.to.have.jsonBody("return_code");
+    pm.response.to.not.have.jsonBody("error");
+});
+
+// 8. 값 범위
+pm.test("Test5: To check Response Result value & Param Type", function () {
+    pm.expect(responseData.confidence).to.be.a("number");
+    pm.expect(responseData.confidence).to.be.above(0.8).lessThan(0.999);
+});
+
+// 12. API 간 결과 비교 (앞선 API에서 저장한 값과 비교)
+// 앞선 API 요청: pm.environment.set("FacesBoxX", pm.response.json().faces[0].box.x)
+var environmentVariableValue = pm.environment.get("FacesBoxX");
+var responseValue = responseData.result[0].box.x;
+pm.test("Test6: To check /api-04 Response box.x Param and /api-08 Response box.x Param", function () {
+    pm.expect(responseValue).to.be.eql(environmentVariableValue);
+    pm.expect(responseValue).to.be.a("number");
 });
 ```
 
