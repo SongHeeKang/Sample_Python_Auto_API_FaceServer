@@ -38,7 +38,7 @@
 
 ### Postman Collection
 
-<img src="https://github.com/user-attachments/assets/fa1a4ee9-2b6b-4de9-a13b-b3920dde77e5" alt="Postman Collection 구성" width="300">
+<img src="docs/screenshots/01-postman-collection.png" alt="Postman Collection 구성" width="300">
 
 - API 엔드포인트는 `/api-01` ~ `/api-19`로 익명화되어 있습니다.
 - API별로 폴더를 나누고, 각 폴더 안에 응답 코드 기준의 테스트 요청을 구성했습니다.
@@ -50,7 +50,7 @@
 
 ### Test Case Assertion (JavaScript)
 
-<img src="https://github.com/user-attachments/assets/9ca7c36b-f392-4370-b29f-e92d3e33d34e" alt="Postman Test Script 예시" width="600">
+<img src="docs/screenshots/02-postman-test-script.png" alt="Postman Test Script 예시" width="600">
 
 요청마다 시나리오에 맞는 Assertion을 여러 개 조합해 작성했습니다. 사용한 검증 유형은 다음과 같습니다.
 
@@ -116,7 +116,7 @@ pm.test("Test6: To check /api-04 Response box.x Param and /api-08 Response box.x
 
 ## Jenkins Pipeline
 
-<img src="https://github.com/user-attachments/assets/4072d255-cb76-4fc0-b0bd-1fe039770359" alt="Jenkins Pipeline" width="400">
+<img src="docs/screenshots/03-jenkins-pipeline.png" alt="Jenkins Pipeline" width="400">
 
 `JenkinsFile`의 Pipeline 흐름은 다음과 같습니다.
 
@@ -156,7 +156,7 @@ post {
 > 아래 이미지는 Allure Report의 화면 구성을 보여주기 위한 **예시 이미지**입니다.
 > 이 프로젝트의 실제 실행 결과가 아니며, 이미지 안의 API 경로, 서버 주소, 테스트 이름 등은 임의의 값으로 바꿨습니다.
 
-<img src="https://github.com/user-attachments/assets/d3ef6789-809e-477a-9978-a00a75a604b1" alt="Allure Report 예시" width="900">
+<img src="docs/screenshots/04-allure-report.jpg" alt="Allure Report 예시" width="900">
 
 Jenkins Pipeline 실행이 끝나면 `newman-reporter-allure`로 만든 결과가 Jenkins의 Allure Report로 게시됩니다.
 
