@@ -151,6 +151,20 @@ post {
 }
 ```
 
+## Allure Report
+
+> 아래 이미지는 Allure Report의 화면 구성을 보여주기 위한 **예시 이미지**입니다.
+> 이 프로젝트의 실제 실행 결과가 아니며, 이미지 안의 API 경로, 서버 주소, 테스트 이름 등은 임의의 값으로 바꿨습니다.
+
+<img src="https://github.com/user-attachments/assets/d3ef6789-809e-477a-9978-a00a75a604b1" alt="Allure Report 예시" width="900">
+
+Jenkins Pipeline 실행이 끝나면 `newman-reporter-allure`로 만든 결과가 Jenkins의 Allure Report로 게시됩니다.
+
+- **Suites**: Collection 폴더 구조대로 테스트 요청이 정리되어, 요청별 성공/실패 여부와 응답 시간을 볼 수 있습니다.
+- **요청 상세**: 요청 URL, 응답 코드, 실행 시간을 확인할 수 있습니다.
+- **Test body**: 요청마다 `pm.test()`로 작성한 Assertion이 각각 하나의 단계로 표시되어, 어떤 검증에서 실패했는지 바로 확인할 수 있습니다.
+- **TestScript**: 해당 요청에 작성한 Test Script 원문을 리포트에서 바로 볼 수 있습니다.
+
 ## 실행 방법
 
 ```bash
