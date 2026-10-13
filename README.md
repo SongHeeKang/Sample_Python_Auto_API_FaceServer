@@ -36,7 +36,12 @@
 
 ## 테스트 구성
 
+### Postman Collection
+
+<img src="https://github.com/user-attachments/assets/fa1a4ee9-2b6b-4de9-a13b-b3920dde77e5" alt="Postman Collection 구성" width="300">
+
 - API 엔드포인트는 `/api-01` ~ `/api-19`로 익명화되어 있습니다.
+- API별로 폴더를 나누고, 각 폴더 안에 응답 코드 기준의 테스트 요청을 구성했습니다.
 - 각 요청은 응답 코드에 따라 시나리오를 나눴습니다.
   - `SUCC-xxxx`: 정상 응답 검증 (쿼리 파라미터 조합, 이미지 크기/포맷별 케이스 등)
   - `FAIL-xxxx`: 얼굴 검출/베스트 샷 추출 실패 케이스
@@ -46,6 +51,72 @@
   - 응답 Body 구조, 필수 파라미터 존재 여부 및 타입
   - `return_code` / `return_msg` 값
   - API 간 결과 값 비교 (Environment 변수에 저장한 값을 다른 API 응답과 비교)
+
+### Test Case Assertion (JavaScript)
+
+<img src="https://github.com/user-attachments/assets/9ca7c36b-f392-4370-b29f-e92d3e33d34e" alt="Postman Test Script 예시" width="600">
+
+각 요청의 `Tests` 탭에 JavaScript로 Assertion을 작성했습니다.
+
+1. **Status Code 검증**: `pm.response.to.have.status(200)`
+2. **응답 시간 검증**: `pm.response.responseTime`이 1000ms 미만인지 확인
+3. **응답 값 검증**: `null`/`undefined`가 아닌지, 타입(`number`, `string`)이 맞는지, 값이 기대 범위 안에 있는지 확인 (예: `confidence`가 0.8 ~ 0.999 사이)
+
+```javascript
+var resp = pm.response.json();
+
+pm.test("Test1: Status code is 200", function () {
+    pm.response.to.have.status(200);
+});
+
+pm.test("Test2: Response time is less than 1000ms", function () {
+    pm.expect(pm.response.responseTime).to.be.below(1000);
+});
+
+pm.test("Test3: To check Response Result value & Param Type", function () {
+    pm.expect(resp.confidence).to.not.be.null;
+    pm.expect(resp.confidence).to.not.be.undefined;
+    pm.expect(resp.confidence).to.be.a("number");
+    pm.expect(resp.confidence).to.be.above(0.8).lessThan(0.999);
+});
+```
+
+## Jenkins Pipeline
+
+<img src="https://github.com/user-attachments/assets/4072d255-cb76-4fc0-b0bd-1fe039770359" alt="Jenkins Pipeline" width="400">
+
+`JenkinsFile`의 Pipeline 흐름은 다음과 같습니다.
+
+1. **파라미터 입력**: Jenkins Job 실행 시 `URL` 파라미터로 테스트 대상 서버 주소를 받습니다.
+2. **Environment 치환**: `sed`로 `environment.json`의 `URL` 값을 입력한 주소로 바꿉니다.
+3. **Newman 실행**: Node.js와 Newman이 준비되어 있는지 확인한 뒤 Collection을 실행하고, `newman-reporter-allure`로 결과를 `allure-results`에 저장합니다.
+4. **예외 처리**: 테스트 실행 중 오류가 나면 `currentBuild.result = 'FAILURE'`로 빌드를 실패 처리하고 오류 메시지를 남깁니다.
+5. **리포트 게시**: `post { always { ... } }`에서 성공/실패와 관계없이 항상 Allure 리포트를 게시합니다.
+
+```groovy
+stage('run newman') {
+    steps {
+        script {
+            try {
+                def URL = params.URL
+                sh '''
+                sed -i "s;URL;${URL};g" environment.json
+                '''
+                runNewmanTests()
+            } catch (Exception e) {
+                currentBuild.result = 'FAILURE'
+                echo "Error during 'run newman' stage: ${e.message}"
+            }
+        }
+    }
+}
+
+post {
+    always {
+        publishAllureResults("allure-results")
+    }
+}
+```
 
 ## 실행 방법
 
